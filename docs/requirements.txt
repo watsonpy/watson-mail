@@ -1,1 +1,2 @@
 watson-common >= 1.4.2
+sphinxcontrib-napoleon
