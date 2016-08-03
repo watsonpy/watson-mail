@@ -25,9 +25,5 @@ Dependencies
    :target: https://travis-ci.org/watsonpy/watson-mail
 .. |Coverage Status| image:: https://coveralls.io/repos/watsonpy/watson-mail/badge.png
    :target: https://coveralls.io/r/watsonpy/watson-mail
-.. |Version| image:: https://pypip.in/v/watson-mail/badge.png
-   :target: https://pypi.python.org/pypi/watson-mail/
-.. |Downloads| image:: https://pypip.in/d/watson-mail/badge.png
-   :target: https://pypi.python.org/pypi/watson-mail/
-.. |Licence| image:: https://pypip.in/license/watson-mail/badge.png
+.. |Version| image:: https://img.shields.io/pypi/v/watson-mail.svg?maxAge=2592000
    :target: https://pypi.python.org/pypi/watson-mail/
