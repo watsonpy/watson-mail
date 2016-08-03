@@ -40,6 +40,9 @@ class AddressList(list):
             if recipient.email == email:
                 super(AddressList, self).remove(recipient)
 
+    def add(self, email, name=None):
+        self.append(Address(email, name))
+
     def __contains__(self, email):
         for adddress in self:
             if adddress.email == email:
@@ -80,23 +83,38 @@ class Recipients(object):
         cc (AddressList): a list of people who should be cc'd in
         bcc (AddressList): a list of people who should be bcc'd in
     """
-    to = None
-    cc = None
-    bcc = None
+    _to = None
+    _cc = None
+    _bcc = None
+
+    @property
+    def to(self):
+        return self._to
+
+    @to.setter
+    def to(self, value):
+        self._to = _process_addresses(value)
+
+    @property
+    def cc(self):
+        return self._cc
+
+    @cc.setter
+    def cc(self, value):
+        self._cc = _process_addresses(value)
+
+    @property
+    def bcc(self):
+        return self._bcc
+
+    @bcc.setter
+    def bcc(self, value):
+        self._bcc = _process_addresses(value)
 
     def __init__(self, to, cc=None, bcc=None):
-        self.add_to(to)
-        self.add_cc(cc)
-        self.add_bcc(bcc)
-
-    def add_to(self, addresses):
-        self.to = _process_addresses(addresses)
-
-    def add_cc(self, addresses):
-        self.cc = _process_addresses(addresses)
-
-    def add_bcc(self, addresses):
-        self.bcc = _process_addresses(addresses)
+        self.to = to
+        self.cc = cc
+        self.bcc = bcc
 
 
 class Senders(object):
@@ -106,13 +124,21 @@ class Senders(object):
         from_ (Address): the primary person sending the email
         reply_to (AddressList): who should be on the reply to
     """
-    from_ = None
+    _from = None
     reply_to = None
+
+    @property
+    def from_(self):
+        return self._from
+
+    @from_.setter
+    def from_(self, value):
+        self._from = _process_address(value)
 
     def __init__(self, from_, reply_to=None):
         if not reply_to:
             reply_to = from_
-        self.from_ = _process_address(from_)
+        self.from_ = from_
         self.reply_to = _process_addresses(reply_to)
 
 

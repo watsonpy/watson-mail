@@ -6,7 +6,7 @@
 .. role:: python(code)
    :language: python
 
-Watson - Validators
+Watson - Mail
 ===============
 
 Testing

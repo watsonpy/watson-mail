@@ -40,6 +40,12 @@ class TestRecipients(object):
         assert len(recipients.cc) == 1
         assert len(recipients.bcc) == 1
 
+    def test_add_to(self):
+        recipients = messages.Recipients('test@test.com')
+        assert len(recipients.to) == 1
+        recipients.to.add('test2@test.com')
+        assert len(recipients.to) == 2
+
 
 class TestSenders(object):
     def test_message_from(self):
