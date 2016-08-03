@@ -26,6 +26,7 @@ class PyPiPublish(BaseCommand):
     """Publishes the code to PyPi.
     """
     def run(self):
+        os.system('py.test')
         if (confirm('Are you sure you want to push to PyPi?')):
             os.system('python setup.py sdist bdist_wheel upload')
             clean()
@@ -53,7 +54,7 @@ path = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(path, 'LICENSE')) as f:
     license = f.read()
 
-with open(os.path.join(path, 'README.md')) as f:
+with open(os.path.join(path, 'README.rst')) as f:
     readme = f.read()
 
 with open(os.path.join(path, 'requirements.txt')) as f:
