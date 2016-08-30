@@ -31,6 +31,8 @@ class Sendmail(abc.Base):
             process.stdout.close()
 
     def _prepare_command(self, command, message):
-        message_string = message.prepared.as_string()
+        prepared = message.prepared
+        prepared['From'] = str(message.senders.from_.email)
+        message_string = prepared.as_string()
         command = '{0} {1}'.format(command, str(message.recipients.to))
         return command, message_string
