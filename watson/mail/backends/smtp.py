@@ -45,15 +45,25 @@ class SMTP(abc.Base):
                 pass
             self._smtp = None
 
-    def send(self, message, **kwargs):
-        self._login(self.password)
-        return self._smtp.sendmail(
-            from_addr=message.senders.from_.email,
-            to_addrs=str(message.recipients.to),
-            msg=message.prepared.as_string(),
-            **kwargs)
+    def send(self, message, should_quit=False, **kwargs):
+        self._login()
+        from_addr = message.senders.from_.email
+        to_addrs = str(message.recipients.to)
+        msg = message.prepared.as_string()
+        try:
+            mail = self._smtp.sendmail(
+                from_addr=from_addr, to_addrs=to_addrs, msg=msg, **kwargs)
+        except smtplib.SMTPServerDisconnected:
+            self._smtp = None
+            self._login()
+            mail = self._smtp.sendmail(
+                from_addr=from_addr, to_addrs=to_addrs, msg=msg, **kwargs)
+        if should_quit:
+            self._smtp.quit()
+            self._smtp = None
+        return mail
 
-    def _login(self, password):
+    def _login(self):
         if not self._smtp:
             self._smtp = self.smtp_class(
                 host=self.host, port=self.port, **self.kwargs)
