@@ -12,7 +12,7 @@ class SMTP(abc.Base):
     username = None
     password = None
     use_ssl = False
-    start_ttls = False
+    start_tls = False
     kwargs = None
     _smtp = None
 
@@ -23,14 +23,14 @@ class SMTP(abc.Base):
             username=None,
             password=None,
             use_ssl=False,
-            start_ttls=False,
+            start_tls=False,
             **kwargs):
         self.host = host
         self.port = port
         self.username = username
         self.password = password
         self.use_ssl = use_ssl
-        self.start_ttls = start_ttls
+        self.start_tls = start_tls
         self.kwargs = kwargs
 
     @property
@@ -67,9 +67,13 @@ class SMTP(abc.Base):
         if not self._smtp:
             self._smtp = self.smtp_class(
                 host=self.host, port=self.port, **self.kwargs)
-        if self.start_ttls:
-            self._smtp.ehlo()
-            self._smtp.starttls()
+        if self.start_tls:
+            try:
+                self._smtp.ehlo()
+                self._smtp.starttls()
+            except smtplib.SMTPServerDisconnected:
+                self._smtp = None
+                self._login()
         self._smtp.login(self.username, self.password)
 
     def __del__(self):

@@ -52,7 +52,7 @@ Using SMTP
             port=587,
             username='user@gmail.com',
             password='password',
-            start_ttls=True))
+            start_tls=True))
     message.send()
 
 
