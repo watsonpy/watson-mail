@@ -268,8 +268,8 @@ class Message(object):
                 html_message, self.body, self.encoding)
             self._convert_base64_to_printable(
                 text_message, text_body, self.encoding)
-        message_alternative.attach(html_message)
         message_alternative.attach(text_message)
+        message_alternative.attach(html_message)
         for attachment in self.attachments:
             with open(attachment, 'rb') as f:
                 message_attachment = application.MIMEApplication(f.read())
@@ -302,7 +302,7 @@ class Message(object):
     def _convert_base64_to_printable(self, message, body, encoding):
         _charset = charset.Charset(encoding)
         _charset.body_encoding = charset.QP
-        message.replace_header('Content-Transfer-Encoding', 'quoted-printable')
+        message._headers.remove(('Content-Transfer-Encoding', 'base64'))
         message.set_payload(body, _charset)
 
         return message
