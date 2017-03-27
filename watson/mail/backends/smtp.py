@@ -3,6 +3,10 @@ import smtplib
 from watson.mail.backends import abc
 
 
+class SMTPMaxRetryError(Exception):
+    pass
+
+
 class SMTP(abc.Base):
     """Send an email via SMTP.
     """
@@ -14,7 +18,10 @@ class SMTP(abc.Base):
     use_ssl = False
     start_tls = False
     kwargs = None
+    max_retries = None
     _smtp = None
+    _connected = False
+    _retries = 1
 
     def __init__(
             self,
@@ -24,6 +31,7 @@ class SMTP(abc.Base):
             password=None,
             use_ssl=False,
             start_tls=False,
+            max_retries=5,
             **kwargs):
         self.host = host
         self.port = port
@@ -31,6 +39,7 @@ class SMTP(abc.Base):
         self.password = password
         self.use_ssl = use_ssl
         self.start_tls = start_tls
+        self.max_retries = max_retries
         self.kwargs = kwargs
 
     @property
@@ -50,20 +59,42 @@ class SMTP(abc.Base):
         from_addr = message.senders.from_.email
         to_addrs = str(message.recipients.to)
         msg = message.prepared.as_string()
+        self._send(
+            from_addr,
+            to_addrs=to_addrs,
+            message=msg,
+            should_quit=should_quit,
+            **kwargs)
+
+    def _send(self, from_addr, to_addrs, message, should_quit, **kwargs):
         try:
             mail = self._smtp.sendmail(
-                from_addr=from_addr, to_addrs=to_addrs, msg=msg, **kwargs)
-        except smtplib.SMTPServerDisconnected:
-            self._smtp = None
-            self._login()
-            mail = self._smtp.sendmail(
-                from_addr=from_addr, to_addrs=to_addrs, msg=msg, **kwargs)
+                from_addr=from_addr, to_addrs=to_addrs, msg=message, **kwargs)
+        except smtplib.SMTPException as exc:
+            if self._retries == self.max_retries:
+                raise SMTPMaxRetryError(
+                    'Reached maximum retries sending to {})'.format(to_addrs)
+                ) from exc
+            self._retries += 1
+            if isinstance(exc, smtplib.SMTPServerDisconnected):
+                self._connected = False
+                self._smtp = None
+                self._login()
+            self._send(
+                from_addr,
+                to_addrs=to_addrs,
+                message=message,
+                should_quit=should_quit,
+                **kwargs)
         if should_quit:
             self._smtp.quit()
             self._smtp = None
+        mail = False
         return mail
 
     def _login(self):
+        if self._connected:
+            return
         if not self._smtp:
             self._smtp = self.smtp_class(
                 host=self.host, port=self.port, **self.kwargs)
@@ -75,6 +106,7 @@ class SMTP(abc.Base):
                 self._smtp = None
                 self._login()
         self._smtp.login(self.username, self.password)
+        self._connected = True
 
     def __del__(self):
         self.quit()
