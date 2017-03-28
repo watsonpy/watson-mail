@@ -59,6 +59,7 @@ class SMTP(abc.Base):
         from_addr = message.senders.from_.email
         to_addrs = str(message.recipients.to)
         msg = message.prepared.as_string()
+        self._retries = 1
         self._send(
             from_addr,
             to_addrs=to_addrs,
