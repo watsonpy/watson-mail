@@ -271,26 +271,41 @@ class Message(object):
         message_alternative.attach(text_message)
         message_alternative.attach(html_message)
         for attachment in self.attachments:
-            with open(attachment, 'rb') as f:
-                message_attachment = application.MIMEApplication(f.read())
-                filename = path.basename(attachment)
-                message_attachment.add_header(
-                    'Content-Disposition', 'attachment', filename=filename)
-                message.attach(message_attachment)
+            message_attachment = self._process_attachment(message, attachment)
+            message.attach(message_attachment)
         message.attach(message_alternative)
 
         return message
 
-    def attach(self, path):
-        """Attach a file to the email.
+    def _process_attachment(self, message, attachment):
+        if isinstance(attachment, str):
+            with open(attachment, 'rb') as f:
+                attachment = {
+                    'payload': f.read(),
+                    'filename': path.basename(attachment)
+                }
+        elif isinstance(attachment['payload'], str):
+            attachment['payload'] = attachment['payload'].encode(
+                attachment.get('encoding', 'utf-8'))
+        message_attachment = application.MIMEApplication(attachment['payload'])
+        message_attachment.add_header(
+            'Content-Disposition',
+            'attachment',
+            filename=attachment['filename'])
+        return message_attachment
+
+    def attach(self, item):
+        """Attach an item to the email.
 
         The files name will be used as the attachment name when the email is
-        sent.
+        sent. An item can be the following:
+        - A path to a file on the disk
+        - A dict containing filename, payload, encoding (defaults to utf-8)
 
         Args:
-            path (string): The path to the file
+            item (string): The item to attach
         """
-        self.attachments.append(path)
+        self.attachments.append(item)
 
     def send(self):
         """Convenience method for sending via a specified backend.
