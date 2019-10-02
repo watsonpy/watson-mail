@@ -50,7 +50,7 @@ class SMTP(abc.Base):
         if self._smtp:
             try:
                 self._smtp.quit()
-            except:
+            except Exception:
                 pass
             self._smtp = None
 
